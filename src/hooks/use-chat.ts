@@ -9,6 +9,7 @@ export const useChat = () => {
   const [htmlContent, setHtmlContent] = useState('');
   const [dataUrl, setDataUrl] = useState('');
   const [selectedModel, setSelectedModel] = useState('gpt-3.5-turbo');
+  const [currentResponse, setCurrentResponse] = useState('');
 
   const addMessage = useCallback((type: 'user' | 'assistant', content: string) => {
     const newMessage: MessageType = {
@@ -24,14 +25,29 @@ export const useChat = () => {
       setIsLoading(true);
       setError(null);
       setHtmlContent('');
+      setCurrentResponse('');
       addMessage('user', userMessage);
+
+      console.log('useChat: Sending message:', userMessage);
+      console.log('useChat: Current messages:', messages);
+      
+      // Convert UI messages to API message format
+      const apiMessages: { role: 'user' | 'assistant'; content: string }[] = messages.map(m => ({
+        role: m.type === 'user' ? 'user' : 'assistant',
+        content: m.content
+      }));
+
+      // Ensure we have an array of messages
+      if (!Array.isArray(apiMessages)) {
+        console.error('Invalid messages format:', apiMessages);
+        return;
+      }
+
+      console.log('useChat: Converted API messages:', apiMessages);
 
       ChatService.generateWebsite(
         {
-          messages: [
-            ...messages.map(m => ({ role: m.type, content: m.content })),
-            { role: 'user' as const, content: userMessage },
-          ],
+          messages: apiMessages,
           model: selectedModel,
         },
         (chunk: string) => {
@@ -41,9 +57,10 @@ export const useChat = () => {
             setDataUrl(newDataUrl);
             return newHtml;
           });
+          setCurrentResponse(prev => prev + chunk);
         },
         () => {
-          addMessage('assistant', 'Here is the website I created:');
+          addMessage('assistant', currentResponse);
           addMessage('assistant', 'Generated new app preview. Check the preview panel!');
           setIsLoading(false);
         },
@@ -55,7 +72,7 @@ export const useChat = () => {
         }
       );
     },
-    [addMessage, messages, selectedModel]
+    [addMessage, messages, selectedModel, currentResponse]
   );
 
   const clearChat = useCallback(() => {
@@ -75,5 +92,6 @@ export const useChat = () => {
     setSelectedModel,
     sendMessage: handleStreamingResponse,
     clearChat,
+    currentResponse,
   };
 };

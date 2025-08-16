@@ -38,12 +38,15 @@ export class ApiClient {
 
   static async streamResponse(
     endpoint: string,
-    body: any,
+    body: Record<string, any>,
     onData: (chunk: string) => void,
     onComplete: () => void,
     onError: (error: string) => void
   ) {
     try {
+      console.log('ApiClient sending request to:', `${API_BASE_URL}${endpoint}`);
+      console.log('ApiClient request body:', body);
+      
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,7 +66,7 @@ export class ApiClient {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let result = '';
+      const result = '';
 
       const read = async () => {
         try {

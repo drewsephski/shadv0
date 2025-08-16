@@ -1,8 +1,8 @@
 'use client';
 
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Header, ChatInterface, PreviewPanel } from '@/components/app';
 import { useChat } from '@/hooks/use-chat';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const {
@@ -13,36 +13,39 @@ export default function Home() {
     selectedModel,
     setSelectedModel,
     sendMessage: handleSendMessage,
+    currentResponse,
   } = useChat();
 
-  // Convert MessageType[] to the expected format for ChatInterface
-  const formattedMessages = chatHistory.map(msg => ({
+  const formattedMessages = chatHistory.map((msg) => ({
     type: msg.type as 'user' | 'assistant',
     content: msg.content,
+    timestamp: new Date(),
+    model: msg.type === 'assistant' ? selectedModel : undefined,
   }));
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col">
-      <Header model={selectedModel} onModelChange={setSelectedModel} />
-      
-      <ResizablePanelGroup direction="horizontal" className="flex-1">
-        <ResizablePanel defaultSize={50}>
-          <ChatInterface 
+    <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground flex flex-col">
+      <Header />
+      <div className="flex-1 flex gap-1 p-1">
+        <div className={cn(
+          "flex flex-col transition-all duration-500 ease-in-out animate-fade-in",
+          htmlContent ? "w-1/2" : "w-full max-w-5xl mx-auto"
+        )}>
+          <ChatInterface
             chatHistory={formattedMessages}
             isLoading={isLoading}
             onSendMessage={handleSendMessage}
+            currentResponse={currentResponse}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
           />
-        </ResizablePanel>
-        
-        <ResizableHandle withHandle />
-        
-        <ResizablePanel defaultSize={50}>
-          <PreviewPanel 
-            dataUrl={dataUrl}
-            htmlContent={htmlContent}
-          />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        </div>
+        {htmlContent && (
+          <div className="w-1/2 transition-all duration-500 ease-in-out animate-slide-up">
+            <PreviewPanel dataUrl={dataUrl} htmlContent={htmlContent} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -13,11 +13,22 @@ export class ChatService {
     onComplete: () => void,
     onError: (error: string) => void
   ) {
+    console.log('ChatService.generateWebsite called with params:', params);
+    
+    // Validate messages parameter
+    if (!params.messages || !Array.isArray(params.messages)) {
+      console.error('ChatService: Messages validation failed:', params.messages);
+      onError('Messages must be an array');
+      return;
+    }
+
     // Convert UI message types to API message roles
     const apiMessages = params.messages.map(msg => ({
       role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
       content: msg.content
     }));
+
+    console.log('ChatService: Converted API messages:', apiMessages);
 
     return ApiClient.streamResponse(
       '/generate',
