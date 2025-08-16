@@ -1,0 +1,21 @@
+{
+  "name": "v0 Clone Docs",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#007bff",
+    "light": "#09f",
+    "dark": "#007bff"
+  },
+  "navigation": [
+    {
+      "group": "Introduction",
+      "pages": [
+        "docs/introduction"
+      ]
+    }
+  ]
+}
