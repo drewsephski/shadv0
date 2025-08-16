@@ -27,26 +27,42 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Received request body:', body);
 
-    const { history, model } = body;
+    // Handle both 'model' and 'messages' from the request body
+    const { model, messages: requestMessages = [] } = body;
 
-    console.log('API Route - Received body:', body);
-    console.log('API Route - History:', history, 'Type:', typeof history);
+    console.log('API Route - Request body:', body);
     console.log('API Route - Model:', model, 'Type:', typeof model);
+    console.log('API Route - Messages:', requestMessages, 'Type:', typeof requestMessages);
 
-    // Validate input
+    // Validate model
     if (!model || typeof model !== 'string') {
       console.error('Invalid model parameter:', model);
-      return NextResponse.json({ error: 'Invalid model parameter' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid model parameter. Please provide a valid model identifier.' },
+        { status: 400 }
+      );
     }
 
-    // Fix: The parameter name is 'messages' not 'history' in the request body
-    const apiMessages = body.messages || [];
-    console.log('API Route - Messages:', apiMessages, 'Type:', typeof apiMessages);
-    console.log('API Route - Is messages array:', Array.isArray(apiMessages));
+    // Validate messages
+    if (!Array.isArray(requestMessages)) {
+      console.error('Messages is not an array:', requestMessages);
+      return NextResponse.json(
+        { error: 'Messages must be an array of message objects' },
+        { status: 400 }
+      );
+    }
 
-    if (!Array.isArray(apiMessages)) {
-      console.error('Messages is not an array:', apiMessages, 'Type:', typeof apiMessages);
-      return NextResponse.json({ error: 'History must be an array' }, { status: 400 });
+    // Ensure messages have the correct format
+    const validatedMessages = requestMessages.map((msg, index) => ({
+      role: msg.role || (index === 0 ? 'system' : 'user'),
+      content: String(msg.content || '').trim()
+    })).filter(msg => msg.content);
+
+    if (validatedMessages.length === 0) {
+      return NextResponse.json(
+        { error: 'No valid messages provided. Please include at least one message with content.' },
+        { status: 400 }
+      );
     }
 
     const systemPrompt = `# Web Development Expert Instructions - STRICT PROTOCOL
@@ -111,23 +127,17 @@ You are an expert web developer with a focus on precision and attention to detai
 </body>
 </html>`;
 
-    // Ensure messages are properly formatted and within token limits
+    // Prepare messages with system prompt and user messages
     const messages = [
-      { role: 'system', content: systemPrompt },
-      // Only include the last 3-4 most recent messages to maintain context
-      // while staying within token limits
-      ...apiMessages.slice(-4).map(msg => ({
-        ...msg,
-        // Ensure content is a string and trim any whitespace
-        content: String(msg.content || '').trim()
-      }))
+      { role: 'system' as const, content: systemPrompt },
+      ...validatedMessages
     ];
 
-    // Validate message content
-    const lastUserMessage = messages.findLast(msg => msg.role === 'user');
-    if (!lastUserMessage?.content?.trim()) {
+    // Ensure we have at least one user message
+    const hasUserMessage = messages.some(msg => msg.role === 'user');
+    if (!hasUserMessage) {
       return NextResponse.json(
-        { error: 'No valid user message provided' },
+        { error: 'No user message provided in the conversation' },
         { status: 400 }
       );
     }

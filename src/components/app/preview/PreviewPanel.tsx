@@ -103,9 +103,9 @@ export function PreviewPanel({ dataUrl, htmlContent }: PreviewPanelProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <WebPreview className="flex-1 flex flex-col">
-        <WebPreviewNavigation className="border-b bg-muted/30">
+    <div className="h-full w-full bg-background">
+      <WebPreview className="h-full flex flex-col">
+        <WebPreviewNavigation className="border-b bg-muted/30 flex-shrink-0">
           <WebPreviewActions>
             <WebPreviewNavigationButton onClick={handleRefresh} tooltip="Refresh">
               <RefreshIcon className="size-4" />
@@ -151,16 +151,17 @@ export function PreviewPanel({ dataUrl, htmlContent }: PreviewPanelProps) {
           </WebPreviewActions>
         </WebPreviewNavigation>
         
-        <div className="flex-1 p-4 bg-muted/10">
-          <div className={cn("h-full transition-all duration-300", getViewportStyles())}>
+        <div className="flex-1 flex flex-col min-h-0 bg-muted/10 p-4">
+          <div className={cn("flex-1 flex flex-col transition-all duration-300 overflow-hidden", getViewportStyles())}>
             <WebPreviewBody 
               ref={iframeRef} 
               src={dataUrl} 
               className="w-full h-full rounded-lg shadow-lg border bg-background"
+              style={{ minHeight: 0 }} // Ensure iframe can shrink below content size
             />
           </div>
         </div>
       </WebPreview>
-    </Card>
+    </div>
   );
 }

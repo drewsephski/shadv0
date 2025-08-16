@@ -8,7 +8,7 @@ export const useChat = () => {
   const [error, setError] = useState<string | null>(null);
   const [htmlContent, setHtmlContent] = useState('');
   const [dataUrl, setDataUrl] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gpt-3.5-turbo');
+  const [selectedModel, setSelectedModel] = useState('glm-4.5-air');
   const [currentResponse, setCurrentResponse] = useState('');
 
   const addMessage = useCallback((type: 'user' | 'assistant', content: string) => {
@@ -26,24 +26,23 @@ export const useChat = () => {
       setError(null);
       setHtmlContent('');
       setCurrentResponse('');
+      
+      // Add the user message to the UI immediately
       addMessage('user', userMessage);
 
       console.log('useChat: Sending message:', userMessage);
       console.log('useChat: Current messages:', messages);
       
-      // Convert UI messages to API message format
-      const apiMessages: { role: 'user' | 'assistant'; content: string }[] = messages.map(m => ({
-        role: m.type === 'user' ? 'user' : 'assistant',
-        content: m.content
-      }));
+      // Convert UI messages to API message format and include the current message
+      const apiMessages: { role: 'user' | 'assistant'; content: string }[] = [
+        ...messages.map(m => ({
+          role: m.type === 'user' ? 'user' as const : 'assistant' as const,
+          content: m.content
+        })),
+        { role: 'user' as const, content: userMessage }
+      ];
 
-      // Ensure we have an array of messages
-      if (!Array.isArray(apiMessages)) {
-        console.error('Invalid messages format:', apiMessages);
-        return;
-      }
-
-      console.log('useChat: Converted API messages:', apiMessages);
+      console.log('useChat: Sending API messages:', apiMessages);
 
       ChatService.generateWebsite(
         {

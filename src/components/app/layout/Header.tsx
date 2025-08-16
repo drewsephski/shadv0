@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MessageSquare, Share, User } from "lucide-react";
+import { Sparkles, MessageSquare, Share } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export function Header() {
   return (
@@ -11,31 +13,45 @@ export function Header() {
             <Sparkles className="size-4 text-primary-foreground" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-            v0
+            v1
           </h1>
         </div>
         <Badge variant="secondary" className="text-xs">
           AI Code Generator
         </Badge>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button 
           variant="ghost" 
           size="sm"
           onClick={() => window.location.reload()}
-          className="gap-2"
+          className="gap-2 hidden sm:flex"
         >
           <MessageSquare className="size-4" />
           New Chat
         </Button>
-        <Button variant="ghost" size="sm" className="gap-2">
+        <Button variant="ghost" size="sm" className="gap-2 hidden sm:flex">
           <Share className="size-4" />
           Share
         </Button>
-        <Button size="sm" className="gap-2">
-          <User className="size-4" />
-          Login
-        </Button>
+        <ThemeToggle />
+        <SignedOut>
+          <div className="flex gap-2">
+            <SignInButton mode="modal">
+              <Button variant="ghost" size="sm">
+                Sign in
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button size="sm">
+                Sign up
+              </Button>
+            </SignUpButton>
+          </div>
+        </SignedOut>
+        <SignedIn>
+          <UserButton afterSignOutUrl="/" />
+        </SignedIn>
       </div>
     </header>
   );

@@ -26,10 +26,10 @@ export default function Home() {
   return (
     <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground flex flex-col">
       <Header />
-      <div className="flex-1 flex gap-1 p-1">
+      <div className="flex-1 flex overflow-hidden">
         <div className={cn(
-          "flex flex-col transition-all duration-500 ease-in-out animate-fade-in",
-          htmlContent ? "w-1/2" : "w-full max-w-5xl mx-auto"
+          "flex flex-col h-full transition-all duration-500 ease-in-out animate-fade-in",
+          htmlContent ? "w-1/2 border-r" : "w-full max-w-5xl mx-auto"
         )}>
           <ChatInterface
             chatHistory={formattedMessages}
@@ -41,7 +41,7 @@ export default function Home() {
           />
         </div>
         {htmlContent && (
-          <div className="w-1/2 transition-all duration-500 ease-in-out animate-slide-up">
+          <div className="w-1/2 h-full transition-all duration-500 ease-in-out animate-slide-up">
             <PreviewPanel dataUrl={dataUrl} htmlContent={htmlContent} />
           </div>
         )}
