@@ -1,5 +1,6 @@
 import { ApiClient } from '@/lib/api-client';
 import { MessageRole } from '@/types/chat';
+import { MODELS } from '@/constants/models';
 
 export interface GenerateWebsiteParams {
   messages: { role: MessageRole; content: string }[];
@@ -15,28 +16,58 @@ export class ChatService {
   ) {
     console.log('ChatService.generateWebsite called with params:', params);
     
-    // Validate messages parameter
-    if (!params.messages || !Array.isArray(params.messages)) {
-      console.error('ChatService: Messages validation failed:', params.messages);
-      onError('Messages must be an array');
-      return;
+    try {
+      // Validate messages parameter
+      if (!params.messages || !Array.isArray(params.messages)) {
+        throw new Error('Messages must be an array');
+      }
+
+      // Ensure each message has required fields and correct types
+      const apiMessages = params.messages.map(msg => {
+        // Ensure content is a string
+        const content = typeof msg.content === 'string' ? msg.content : String(msg.content);
+        
+        // Validate and set role
+        const role = msg.role === 'user' ? 'user' : 
+                    msg.role === 'assistant' ? 'assistant' : 
+                    'user'; // Default to 'user' if role is invalid
+        
+        return { role, content };
+      });
+
+      console.log('ChatService: Sending API request with messages:', apiMessages);
+
+      // Get the full model ID from the MODELS configuration
+      const modelKey = params.model || 'llama-3.3-70b';
+      const modelConfig = MODELS[modelKey as keyof typeof MODELS];
+      
+      if (!modelConfig) {
+        throw new Error(`The model '${modelKey}' is not available.`);
+      }
+
+      // Ensure we're only sending the required fields to the API
+      const requestBody = {
+        messages: apiMessages,
+        model: modelKey, // The API will resolve this to the full model ID
+      };
+      
+      console.log('Using model:', { modelKey, modelId: modelConfig.id });
+
+      return ApiClient.streamResponse(
+        '/api/generate',
+        requestBody,
+        onChunk,
+        onComplete,
+        (error) => {
+          console.error('ChatService: API request failed:', error);
+          onError(typeof error === 'string' ? error : 'An error occurred while generating the response');
+        }
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      console.error('ChatService: Error in generateWebsite:', error);
+      onError(errorMessage);
     }
-
-    // Convert UI message types to API message roles
-    const apiMessages = params.messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
-      content: msg.content
-    }));
-
-    console.log('ChatService: Converted API messages:', apiMessages);
-
-    return ApiClient.streamResponse(
-      '/generate',
-      { ...params, messages: apiMessages },
-      onChunk,
-      onComplete,
-      onError
-    );
   }
 
   // Add other chat-related methods here

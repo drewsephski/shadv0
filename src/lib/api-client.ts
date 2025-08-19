@@ -1,6 +1,5 @@
-import { Message } from '@/types/chat';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+// Use empty string as base URL since Next.js API routes are relative to /api
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface ApiResponse<T> {
   data?: T;
@@ -36,13 +35,13 @@ export class ApiClient {
     }
   }
 
-  static async streamResponse(
+  static async streamResponse<T = unknown>(
     endpoint: string,
-    body: Record<string, any>,
+    body: T,
     onData: (chunk: string) => void,
     onComplete: () => void,
     onError: (error: string) => void
-  ) {
+  ): Promise<void> {
     try {
       console.log('ApiClient sending request to:', `${API_BASE_URL}${endpoint}`);
       console.log('ApiClient request body:', body);
@@ -66,7 +65,6 @@ export class ApiClient {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      const result = '';
 
       const read = async () => {
         try {

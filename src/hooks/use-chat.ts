@@ -21,57 +21,85 @@ export const useChat = () => {
   }, []);
 
   const handleStreamingResponse = useCallback(
-    (userMessage: string) => {
+    async (userMessage: string, model: string = selectedModel) => {
       setIsLoading(true);
       setError(null);
-      setHtmlContent('');
       setCurrentResponse('');
       
       // Add the user message to the UI immediately
       addMessage('user', userMessage);
 
-      console.log('useChat: Sending message:', userMessage);
-      console.log('useChat: Current messages:', messages);
+      const isFirstMessage = messages.length === 0;
       
-      // Convert UI messages to API message format and include the current message
-      const apiMessages: { role: 'user' | 'assistant'; content: string }[] = [
-        ...messages.map(m => ({
-          role: m.type === 'user' ? 'user' as const : 'assistant' as const,
-          content: m.content
-        })),
-        { role: 'user' as const, content: userMessage }
-      ];
+      // For the first message, initialize the preview with a loading state
+      if (isFirstMessage) {
+        const loadingHtml = '<!DOCTYPE html><html><head><title>Loading...</title><style>body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }</style></head><body><div>Generating your website preview...</div></body></html>';
+        setHtmlContent(loadingHtml);
+        setDataUrl('data:text/html;charset=utf-8,' + encodeURIComponent(loadingHtml));
+      }
 
-      console.log('useChat: Sending API messages:', apiMessages);
-
-      ChatService.generateWebsite(
-        {
-          messages: apiMessages,
-          model: selectedModel,
-        },
-        (chunk: string) => {
-          setHtmlContent(prev => {
-            const newHtml = prev + chunk;
-            const newDataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(newHtml)}`;
-            setDataUrl(newDataUrl);
-            return newHtml;
-          });
-          setCurrentResponse(prev => prev + chunk);
-        },
-        () => {
-          addMessage('assistant', currentResponse);
-          addMessage('assistant', 'Generated new app preview. Check the preview panel!');
-          setIsLoading(false);
-        },
-        (error: string) => {
-          console.error('Error generating website:', error);
-          setError(error);
-          addMessage('assistant', `Sorry, there was an error: ${error}`);
-          setIsLoading(false);
-        }
-      );
+      try {
+        // Call the chat service to get the response
+        await ChatService.generateWebsite(
+          {
+            messages: [
+              ...messages.map(m => ({
+                role: m.type === 'user' ? 'user' as const : 'assistant' as const,
+                content: m.content
+              })),
+              { role: 'user' as const, content: userMessage }
+            ],
+            model,
+          },
+          (chunk) => {
+            setCurrentResponse((prev) => {
+              const newResponse = prev + chunk;
+              
+              // If this is the first message and we have HTML content, update the preview
+              if (isFirstMessage && newResponse.includes('<!DOCTYPE html>')) {
+                // Extract the HTML content from the response
+                const htmlMatch = newResponse.match(/```(?:html)?\n([\s\S]*?)\n```/);
+                const htmlContent = htmlMatch ? htmlMatch[1] : newResponse;
+                
+                setHtmlContent(htmlContent);
+                setDataUrl('data:text/html;charset=utf-8,' + 
+                  encodeURIComponent(htmlContent));
+              }
+              
+              return newResponse;
+            });
+          },
+          () => {
+            // When the response is complete, add it to the messages
+            addMessage('assistant', currentResponse);
+            
+            // If this was the first message, ensure the preview is up to date
+            if (isFirstMessage && currentResponse) {
+              const htmlMatch = currentResponse.match(/```(?:html)?\n([\s\S]*?)\n```/);
+              const finalHtml = htmlMatch ? htmlMatch[1] : currentResponse;
+              
+              setHtmlContent(finalHtml);
+              setDataUrl('data:text/html;charset=utf-8,' + 
+                encodeURIComponent(finalHtml));
+            }
+            
+            setCurrentResponse('');
+            setIsLoading(false);
+          },
+          (error: string) => {
+            console.error('Error generating website:', error);
+            setError(error);
+            addMessage('assistant', `Sorry, there was an error: ${error}`);
+            setIsLoading(false);
+          }
+        );
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setError('Failed to send message');
+        setIsLoading(false);
+      }
     },
-    [addMessage, messages, selectedModel, currentResponse]
+    [addMessage, messages, selectedModel]
   );
 
   const clearChat = useCallback(() => {

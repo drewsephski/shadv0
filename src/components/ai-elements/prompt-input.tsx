@@ -164,7 +164,8 @@ export const PromptInputSubmit = ({
       variant={variant}
       {...props}
     >
-      {children ?? Icon}
+      {children}
+      {Icon}
     </Button>
   );
 };

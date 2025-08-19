@@ -13,23 +13,24 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 const getVariantStyles = (variant: MessageVariant) => {
-  const baseStyles = 'p-4 rounded-2xl text-sm relative';
+  const baseStyles = 'p-4 rounded-xl text-sm relative';
   
   switch (variant) {
     case 'user':
       return cn(
         baseStyles,
-        'bg-primary text-primary-foreground rounded-tr-none',
-        'shadow-sm hover:shadow transition-shadow',
-        'max-w-[85%] md:max-w-[75%]'
+        'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-tr-none',
+        'shadow-md hover:shadow-lg transition-all duration-300',
+        'max-w-[85%] md:max-w-[75%]',
+        'backdrop-blur-sm'
       );
     case 'assistant':
       return cn(
         baseStyles,
-        'bg-muted text-foreground rounded-tl-none',
-        'border border-border/50',
-        'shadow-sm hover:shadow-md transition-shadow',
-        'max-w-[90%] md:max-w-[80%]'
+        'bg-gradient-to-br from-background to-muted/30 text-foreground rounded-tl-none',
+        'border border-border/40 shadow-sm hover:shadow-md transition-all duration-300',
+        'max-w-[90%] md:max-w-[80%]',
+        'backdrop-blur-sm'
       );
     default:
       return baseStyles;

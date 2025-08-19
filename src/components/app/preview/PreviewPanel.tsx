@@ -11,7 +11,7 @@ import {
 import RefreshIcon from '@/components/ui/refresh-icon';
 import CodeIcon from '@/components/ui/code-icon';
 import ExternalLinkIcon from '@/components/ui/external-link-icon';
-import { CopyIcon, Download, Smartphone, Monitor, Tablet } from 'lucide-react';
+import { CopyIcon, Download, Smartphone, Monitor, Tablet, Loader } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -102,20 +102,17 @@ export function PreviewPanel({ dataUrl, htmlContent }: PreviewPanelProps) {
     }
   };
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+  };
+
   return (
     <div className="h-full w-full bg-background">
       <WebPreview className="h-full flex flex-col">
         <WebPreviewNavigation className="border-b bg-muted/30 flex-shrink-0">
-          <WebPreviewActions>
-            <WebPreviewNavigationButton onClick={handleRefresh} tooltip="Refresh">
-              <RefreshIcon className="size-4" />
-            </WebPreviewNavigationButton>
-          </WebPreviewActions>
-          
-          <div className="flex-1 flex items-center justify-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              Live Preview
-            </Badge>
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 bg-background rounded-md p-1">
               {(['desktop', 'tablet', 'mobile'] as ViewportSize[]).map((size) => (
                 <button
@@ -135,7 +132,14 @@ export function PreviewPanel({ dataUrl, htmlContent }: PreviewPanelProps) {
             </div>
           </div>
 
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-sm font-medium text-muted-foreground">Preview</p>
+          </div>
+
           <WebPreviewActions>
+            <WebPreviewNavigationButton onClick={handleRefresh} tooltip="Refresh">
+              <RefreshIcon className="size-4" />
+            </WebPreviewNavigationButton>
             <WebPreviewNavigationButton onClick={handleDownload} tooltip="Download HTML">
               <Download className="size-4" />
             </WebPreviewNavigationButton>
@@ -152,10 +156,16 @@ export function PreviewPanel({ dataUrl, htmlContent }: PreviewPanelProps) {
         </WebPreviewNavigation>
         
         <div className="flex-1 flex flex-col min-h-0 bg-muted/10 p-4">
-          <div className={cn("flex-1 flex flex-col transition-all duration-300 overflow-hidden", getViewportStyles())}>
+          <div className={cn("relative flex-1 flex flex-col transition-all duration-300 overflow-hidden", getViewportStyles())}>
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-10">
+                <Loader className="size-8 animate-spin" />
+              </div>
+            )}
             <WebPreviewBody 
               ref={iframeRef} 
               src={dataUrl} 
+              onLoad={handleIframeLoad}
               className="w-full h-full rounded-lg shadow-lg border bg-background"
               style={{ minHeight: 0 }} // Ensure iframe can shrink below content size
             />
