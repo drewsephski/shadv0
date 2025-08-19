@@ -5,7 +5,6 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Banner } from "@/components/ui/banner";
 import Link from "next/link";
-import Image from "next/image";
 
 export function Header() {
   return (
@@ -17,7 +16,7 @@ export function Header() {
             <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-primary-foreground"><path d="M10 3h4v4h-4z"/><path d="M7 17h10v4H7z"/><path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2z"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/></svg>
             </div>
-            <h1 className="text-xl font-bold">
+            <h1 className="text-xl font-bold leading-[1.2] text-foreground hover:opacity-80 transition-opacity">
               DEEPSEEKDREW
             </h1>
           </Link>
@@ -42,18 +41,6 @@ export function Header() {
           </Button>
           <div className="w-px h-6 bg-border mx-2"></div>
           <ThemeToggle />
-          <div className="flex items-center gap-2 ml-2">
-            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-border">
-              <Image
-                src="/drew.png"
-                alt="User Logo"
-                fill
-                className="object-cover"
-                sizes="32px"
-                priority
-              />
-            </div>
-          </div>
           <SignedOut>
             <div className="flex gap-2">
               <SignInButton mode="modal">
