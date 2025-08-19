@@ -8,6 +8,14 @@
   NODE_VERSION = "22.18.0"
   NPM_FLAGS = "--legacy-peer-deps"
 
+# Configure secrets scanning
+[secrets]
+  scan = true
+  scan_omit_paths = [
+    ".next/**/*",
+    "node_modules/**/*"
+  ]
+
 # Handle client-side routing
 [[redirects]]
   from = "/*"
