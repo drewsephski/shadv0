@@ -17,6 +17,3 @@
 # Next.js plugin configuration
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  [plugins.inputs]
-    buildCommand = "npm run build"
-    publishDir = ".next"
