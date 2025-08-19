@@ -8,33 +8,15 @@
   NODE_VERSION = "22.18.0"
   NPM_FLAGS = "--legacy-peer-deps"
 
-# Configure secrets scanning
-[secrets]
-  scan = true
-  scan_omit_paths = [
-    ".next/**/*",
-    ".env*",
-    "node_modules/**/*"
-  ]
-
-# Exclude files from build
-[build]
-  ignore = "git diff --quiet HEAD^ HEAD -- ."
-  
-# Required environment variables
-[build.environment]
-  # Add your required environment variables here
-  # OPENROUTER_API_KEY = "your-key-here"
-  # NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "your-key-here"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-  [plugins.inputs]
-    buildCommand = "npm run build"
-    publishDir = ".next"
-
 # Handle client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Next.js plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+  [plugins.inputs]
+    buildCommand = "npm run build"
+    publishDir = ".next"
