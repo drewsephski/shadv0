@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Banner } from "@/components/ui/banner";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Header() {
   return (
@@ -41,6 +42,18 @@ export function Header() {
           </Button>
           <div className="w-px h-6 bg-border mx-2"></div>
           <ThemeToggle />
+          <div className="flex items-center gap-2 ml-2">
+            <div className="relative w-8 h-8 rounded-full overflow-hidden border border-border">
+              <Image
+                src="/drew.png"
+                alt="User Logo"
+                fill
+                className="object-cover"
+                sizes="32px"
+                priority
+              />
+            </div>
+          </div>
           <SignedOut>
             <div className="flex gap-2">
               <SignInButton mode="modal">
