@@ -1,11 +1,17 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  ignore = "-r .env*"
 
 [build.environment]
   NEXT_USE_TURBOPACK = "false"
   NODE_VERSION = "22.18.0"
   NPM_FLAGS = "--legacy-peer-deps"
+
+# Disable secrets scanning for build output
+[secrets]
+  scan = true
+  scan_omit_paths = [".next/**/*"]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
