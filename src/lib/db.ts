@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 declare global {
-  // Using var for global type augmentation
-  // eslint-disable-next-line no-var
+  // Using var for global type augmentation (required for global namespace extension)
   var prisma: PrismaClient | undefined;
 }
 

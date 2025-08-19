@@ -5,7 +5,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  useCarousel,
+  type CarouselApi,
 } from '@/components/ui/carousel';
 import {
   HoverCard,
@@ -86,10 +86,21 @@ export type InlineCitationCarouselProps = ComponentProps<typeof Carousel>;
 
 export const InlineCitationCarousel = ({
   className,
+  children,
   ...props
-}: InlineCitationCarouselProps) => (
-  <Carousel className={cn('w-full', className)} {...props} />
-);
+}: InlineCitationCarouselProps) => {
+  const [api, setApi] = useState<CarouselApi>();
+  
+  return (
+    <Carousel
+      className={cn('w-full overflow-hidden', className)}
+      setApi={setApi}
+      {...props}
+    >
+      {children}
+    </Carousel>
+  );
+};
 
 export type InlineCitationCarouselContentProps = ComponentProps<'div'>;
 
@@ -128,7 +139,7 @@ export const InlineCitationCarouselIndex = ({
   className,
   ...props
 }: InlineCitationCarouselIndexProps) => {
-  const { api } = useCarousel();
+  const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
 
@@ -164,7 +175,7 @@ export const InlineCitationCarouselPrev = ({
   className,
   ...props
 }: InlineCitationCarouselPrevProps) => {
-  const { api } = useCarousel();
+  const [api, setApi] = useState<CarouselApi>();
 
   const handleClick = useCallback(() => {
     if (api) {
@@ -191,7 +202,7 @@ export const InlineCitationCarouselNext = ({
   className,
   ...props
 }: InlineCitationCarouselNextProps) => {
-  const { api } = useCarousel();
+  const [api, setApi] = useState<CarouselApi>();
 
   const handleClick = useCallback(() => {
     if (api) {

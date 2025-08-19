@@ -99,7 +99,7 @@ export const useChat = () => {
         setIsLoading(false);
       }
     },
-    [addMessage, messages, selectedModel]
+    [addMessage, messages, selectedModel, currentResponse]
   );
 
   const clearChat = useCallback(() => {

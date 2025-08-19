@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 export function ThemeToggle() {
   const [mounted, setMounted] = React.useState(false);
   const [isAnimating, setIsAnimating] = React.useState(false);
-  const animationRef = React.useRef<number>();
+  const animationRef = React.useRef<number | null>(null);
   const { theme, setTheme } = useTheme();
-  const cleanupRef = React.useRef<() => void>();
+  const cleanupRef = React.useRef<(() => void) | null>(null);
 
   // Set up cleanup on unmount
   React.useEffect(() => {

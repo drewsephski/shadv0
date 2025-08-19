@@ -110,16 +110,11 @@ export const Reasoning = memo(
   }
 );
 
-export type ReasoningTriggerProps = ComponentProps<
-  typeof CollapsibleTrigger
-> & {
-  title?: string;
-};
+export type ReasoningTriggerProps = ComponentProps<typeof CollapsibleTrigger>;
 
 export const ReasoningTrigger = memo(
   ({
     className,
-    title = 'Reasoning',
     children,
     ...props
   }: ReasoningTriggerProps) => {

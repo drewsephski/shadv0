@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, MessageSquare, Share } from "lucide-react";
+import { MessageSquare, Share } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
-import { Banner } from "@/components/ui/banner";
 import Link from "next/link";
 
 export function Header() {
@@ -16,7 +14,7 @@ export function Header() {
             <div className="size-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-primary-foreground"><path d="M10 3h4v4h-4z"/><path d="M7 17h10v4H7z"/><path d="M21 17a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2z"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/></svg>
             </div>
-            <h1 className="text-xl font-bold leading-[1.2] text-foreground hover:opacity-80 transition-opacity">
+            <h1 className="text-xl font-extrabold leading-[1.2] text-foreground hover:opacity-80 transition-opacity">
               DEEPSEEKDREW
             </h1>
           </Link>

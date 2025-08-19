@@ -139,11 +139,9 @@ export async function checkRateLimit(
     };
   } catch (error) {
     // If Redis is down, we'll allow the request but log the error
-    logger.error('Rate limit check failed', { 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      identifier, 
-      type 
-    });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Log the full error message with context
+    logger.error(`Rate limit check failed for ${type} ${identifier}: ${errorMessage}`);
     return { success: true, limit: 0, remaining: 0, reset: 0 };
   }
 }

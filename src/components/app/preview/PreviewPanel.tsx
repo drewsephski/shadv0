@@ -12,8 +12,6 @@ import RefreshIcon from '@/components/ui/refresh-icon';
 import CodeIcon from '@/components/ui/code-icon';
 import ExternalLinkIcon from '@/components/ui/external-link-icon';
 import { CopyIcon, Download, Smartphone, Monitor, Tablet, Loader } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 type PreviewPanelProps = {

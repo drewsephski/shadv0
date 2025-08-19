@@ -2,7 +2,6 @@
 
 import { useCallback, ReactNode, JSX, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Copy, Check } from 'lucide-react';
@@ -150,10 +149,10 @@ export function MarkdownRenderer({
               </div>
             );
           },
-          pre: ({ className, children, ...props }: ComponentProps<'pre'>) => (
-            <div className={cn('my-4', className)} {...props}>
+          pre: ({ className, children, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
+            <pre className={cn('my-4', className)} {...props}>
               {children}
-            </div>
+            </pre>
           ),
           a: ({ className, children, href, ...props }: ComponentProps<'a'>) => {
             const isExternal = href?.startsWith('http');
@@ -220,26 +219,36 @@ export function MarkdownRenderer({
               {children}
             </blockquote>
           ),
-          // Add responsive images with Next.js Image component
-          img: ({ className, alt, src, ...props }: ComponentProps<'img'>) => (
-            <div className="my-4 overflow-hidden rounded-lg border border-border">
-              <div className="relative w-full aspect-video">
-                <Image
-                  src={src || ''}
-                  alt={alt || ''}
-                  fill
-                  className={cn('object-contain', className)}
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  {...props}
-                />
-              </div>
-              {alt && (
-                <div className="px-3 py-2 text-xs text-muted-foreground text-center border-t border-border bg-muted/30">
-                  {alt}
+          // Simple image rendering with basic img tag to avoid TypeScript errors
+          img: ({ className, alt, src, ...props }: ComponentProps<'img'>) => {
+            const imageSrc = typeof src === 'string' ? src : '';
+            
+            if (!imageSrc) {
+              return (
+                <div className="my-4 p-4 bg-muted/30 dark:bg-muted/20 rounded-lg border border-border">
+                  <p className="text-muted-foreground text-sm">Image not available</p>
                 </div>
-              )}
-            </div>
-          ),
+              );
+            }
+            
+            return (
+              <div className="my-4 overflow-hidden rounded-lg border border-border">
+                <div className="relative w-full">
+                  <img
+                    src={imageSrc}
+                    alt={alt || ''}
+                    className={cn('w-full h-auto object-contain', className)}
+                    {...props}
+                  />
+                </div>
+                {alt && (
+                  <div className="px-3 py-2 text-xs text-muted-foreground text-center border-t border-border bg-muted/30">
+                    {alt}
+                  </div>
+                )}
+              </div>
+            );
+          },
         }}
         {...props}
       >
