@@ -3,6 +3,7 @@
 import { Header, ChatInterface, PreviewPanel } from '@/components/app';
 import { useChat } from '@/hooks/use-chat';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { Component as RaycastAnimatedBlueBackground } from '@/components/ui/raycast-animated-blue-background';
 
 export default function Home() {
   const {
@@ -24,7 +25,8 @@ export default function Home() {
   }));
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col">
+    <div className="h-screen bg-background text-foreground flex flex-col relative">
+      <RaycastAnimatedBlueBackground />
       <Header />
       <div className="flex-1 overflow-hidden bg-grid-pattern">
         {htmlContent ? (
