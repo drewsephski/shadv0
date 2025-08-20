@@ -135,7 +135,7 @@ export function ChatInterface({
     <Card className="flex flex-col h-full border-0 shadow-none bg-transparent">
       <div className="flex-1 flex flex-col min-h-0 relative">
         {chatHistory.length === 0 ? (
-          <div className="absolute inset-0 flex items-end justify-center pb-24 overflow-auto">
+          <div className="absolute inset-0 flex items-end justify-center pb-2 overflow-auto">
             <div className="w-full max-w-4xl">
               <EmptyState onSuggestionClick={handleSuggestionClick} suggestions={promptSuggestions} />
             </div>
