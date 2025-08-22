@@ -157,6 +157,7 @@ export const WebPreviewUrl = ({
       onKeyDown={handleKeyDown}
       placeholder="Enter URL..."
       value={value ?? url}
+      readOnly={!onChange}
       {...props}
     />
   );

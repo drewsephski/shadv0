@@ -13,7 +13,7 @@ import {
 import {
   Conversation,
   ConversationContent,
-  ConversationScrollButton
+  ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
 import { Loader } from '@/components/ai-elements/loader';
 import { EmptyState } from './EmptyState';
@@ -170,16 +170,17 @@ export function ChatInterface({
         )}
       </div>
       
-      <div className="border-t bg-background/50 backdrop-blur-sm p-4">
-        <div className="max-w-3xl mx-auto">
-          <PromptInput onSubmit={handleSubmit}>
+      <div className="bg-transparent backdrop-blur-sm w-full flex justify-center">
+        <div className="w-full max-w-2xl">
+          <PromptInput onSubmit={handleSubmit} className="border-0 shadow-none">
             <PromptInputTextarea
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
               value={message}
               placeholder="Describe the app you want to build..."
-              className="min-h-[60px] text-base"
+              className="min-h-[60px] text-base px-4 py-3 rounded-t-lg rounded-b-none"
             />
-            <PromptInputToolbar>
+            <div className="px-4 pb-3 rounded-b-lg bg-background/30">
+            <PromptInputToolbar className="mt-2">
               <PromptInputModelSelect value={selectedModel} onValueChange={onModelChange}>
                 <PromptInputModelSelectTrigger className="w-auto">
                   <PromptInputModelSelectValue placeholder="Select a model" />
@@ -187,15 +188,18 @@ export function ChatInterface({
                 <PromptInputModelSelectContent>
                   {Object.entries(MODELS).map(([id, model]) => (
                     <PromptInputModelSelectItem key={id} value={id}>
-                      {model.name}
+                      <div className="flex flex-col">
+                        <span className="font-medium">{model.name}</span>
+                        <span className="text-xs text-muted-foreground">{model.description}</span>
+                      </div>
                     </PromptInputModelSelectItem>
                   ))}
                 </PromptInputModelSelectContent>
               </PromptInputModelSelect>
               <PromptInputSubmit disabled={isLoading || !message.trim()} />
             </PromptInputToolbar>
+          </div>
           </PromptInput>
-          {/* Removed redundant prompt suggestions here */}
         </div>
       </div>
     </Card>

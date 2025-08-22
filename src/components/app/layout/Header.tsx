@@ -3,8 +3,15 @@ import { MessageSquare, Share } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function Header() {
+  const router = useRouter();
+
+  const handleNewChat = () => {
+    router.push("/");
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border-/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-3 h-16 flex items-center justify-between px-6 shrink-0">
@@ -18,7 +25,11 @@ export function Header() {
               DEEPSEEKDREW
             </h1>
           </Link>
-          
+          <nav className="hidden md:flex items-center gap-4 ml-6">
+            <Link href="/features" className="text-sm font-medium text-black hover:text-foreground transition-colors bg-blue-300 hover:bg-blue-400 px-3 py-2 rounded-sm">
+              Features
+            </Link>
+          </nav>
         </div>
         
         
@@ -27,9 +38,10 @@ export function Header() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.location.reload()}
+            onClick={handleNewChat}
             className="gap-2 hidden sm:flex"
           >
+            
             <MessageSquare className="size-4" />
             New Chat
           </Button>

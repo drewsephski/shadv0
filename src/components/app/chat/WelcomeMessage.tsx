@@ -39,10 +39,10 @@ export function WelcomeMessage({ onSuggestionClick }: WelcomeMessageProps) {
           <Sparkles className="size-8 text-primary-foreground" />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-          Welcome to ShadV0
+          Welcome to DEEPSEEK v0
         </h2>
-        <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto">
-          I&apos;m your AI assistant, ready to help you build beautiful, functional web applications with modern technologies.
+        <p className="text-foreground text-sm md:text-base max-w-md mx-auto font-medium">
+          Describe your idea and I&apos;ll help you create beautiful, functional web applications with modern technologies.
         </p>
       </div>
       
@@ -55,14 +55,14 @@ export function WelcomeMessage({ onSuggestionClick }: WelcomeMessageProps) {
               {tech === 'Next.js' && <Zap className="size-4" />}
               {tech === 'TypeScript' && <Code className="size-4" />}
             </div>
-            <p className="text-xs font-medium">{tech}</p>
+            <p className="text-sm font-semibold text-foreground">{tech}</p>
           </div>
         ))}
       </div>
 
       <div className="w-full">
-        <h3 className="text-xs md:text-sm font-medium text-muted-foreground mb-3 flex items-center justify-center">
-          <Lightbulb className="size-3 md:size-4 mr-2 text-primary" />
+        <h3 className="text-sm md:text-base font-semibold text-foreground/90 mb-3 flex items-center justify-center">
+          <Lightbulb className="size-3 md:size-4 mr-2 text-white" />
           Try these prompts to get started
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

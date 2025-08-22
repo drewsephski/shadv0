@@ -4,7 +4,7 @@ export const MODELS: Record<string, ModelInfo> = {
   'glm-4.5-air': {
     id: 'z-ai/glm-4.5-air:free',
     name: 'GLM-4.5 Air',
-    description: 'Efficient and powerful model from Zhipu AI',
+    description: 'Best overall performance',
     context: '32K',
     isFree: true,
     maxTokens: 32768,
@@ -12,7 +12,7 @@ export const MODELS: Record<string, ModelInfo> = {
   'llama-3.3-70b': {
     id: 'meta-llama/llama-3.3-70b-instruct:free',
     name: 'Llama 3.3 70B',
-    description: 'Latest and most powerful free model from Meta',
+    description: 'Best for complex reasoning',
     context: '8K',
     isFree: true,
     maxTokens: 8192,
@@ -20,7 +20,7 @@ export const MODELS: Record<string, ModelInfo> = {
   'mistral-7b': {
     id: 'mistralai/mistral-7b-instruct:free',
     name: 'Mistral 7B Instruct',
-    description: 'Efficient 7B parameter model from Mistral AI',
+    description: 'Fast and lightweight',
     context: '8K',
     isFree: true,
     maxTokens: 8192,
@@ -28,7 +28,7 @@ export const MODELS: Record<string, ModelInfo> = {
   'mixtral-8x7b': {
     id: 'mistralai/mixtral-8x7b-instruct:free',
     name: 'Mixtral 8x7B',
-    description: 'High-quality mixture of experts model',
+    description: 'Best for long context',
     context: '32K',
     isFree: true,
     maxTokens: 32768,
@@ -36,7 +36,7 @@ export const MODELS: Record<string, ModelInfo> = {
   'deepseek-chat-v3': {
     id: 'deepseek-ai/deepseek-chat-v3',
     name: 'DeepSeek Chat V3',
-    description: 'Advanced model from DeepSeek',
+    description: 'Great for coding tasks',
     context: '8K',
     isFree: true,
     maxTokens: 8192,
