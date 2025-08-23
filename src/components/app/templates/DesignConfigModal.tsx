@@ -9,8 +9,6 @@ import { cn } from '@/lib/utils'
 import {
   DesignSystemConfig,
   DesignConfigModalProps,
-  ColorPreset,
-  FontPreset,
   ColorPresetOption,
   FontPresetOption,
   ColorPalette,
@@ -246,15 +244,15 @@ export function DesignConfigModal({
                       <CardContent>
                         <div className="flex gap-2">
                           <div
-                            className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                            className="w-6 h-6 rounded-full border-2 border-white border-solid shadow-sm"
                             style={{ backgroundColor: preset.colors.primary }}
                           />
                           <div
-                            className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                            className="w-6 h-6 rounded-full border-2 border-white border-solid shadow-sm"
                             style={{ backgroundColor: preset.colors.accent }}
                           />
                           <div
-                            className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
+                            className="w-6 h-6 rounded-full border-2 border-white border-solid shadow-sm"
                             style={{ backgroundColor: preset.colors.secondary }}
                           />
                         </div>
@@ -428,7 +426,7 @@ export function DesignConfigModal({
                         {Object.entries(config.colors).map(([key, color]) => (
                           <div key={key} className="text-center">
                             <div
-                              className="w-12 h-12 rounded-lg mx-auto mb-1 border-2 border-white shadow-sm"
+                              className="w-12 h-12 rounded-lg mx-auto mb-1 border-2 border-white border-solid shadow-sm"
                               style={{ backgroundColor: color }}
                             />
                             <div className="text-xs text-muted-foreground capitalize">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Header, ChatInterface, PreviewPanel } from '@/components/app';
 import { useChat } from '@/hooks/use-chat';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
@@ -64,22 +64,23 @@ export default function Home() {
     setRefinementPrompt(code);
   };
 
+  useEffect(() => {
+    const handleVersionHistory = () => {
+      setIsVersionHistoryModalOpen(true);
+    };
+
+    document.addEventListener('openVersionHistory', handleVersionHistory);
+
+    return () => {
+      document.removeEventListener('openVersionHistory', handleVersionHistory);
+    };
+  }, []);
+
   return (
     <div className="h-screen bg-background text-foreground flex flex-col relative">
       <RaycastAnimatedBlueBackground />
       <Header onNewChat={clearChat} />
       <div className="relative flex-1 overflow-hidden bg-grid-pattern">
-        <div className="absolute top-4 right-4 z-10">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsVersionHistoryModalOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <History className="size-4" />
-            Version History
-          </Button>
-        </div>
         {isLoading && !htmlContent && currentLoadingStage ? (
           <LoadingScreen currentStage={currentLoadingStage} brandingText="Kilo Code" />
         ) : htmlContent ? (

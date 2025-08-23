@@ -72,7 +72,7 @@ export function WelcomeMessage({ onSuggestionClick }: WelcomeMessageProps) {
               onClick={() => onSuggestionClick(suggestion.prompt)}
               className="text-left p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-4">
                 <div className="size-8 rounded-md bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
                   {suggestion.icon}
                 </div>

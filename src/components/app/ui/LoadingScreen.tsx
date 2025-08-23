@@ -29,7 +29,7 @@ const loadingStages: LoadingStage[] = [
 
 export { loadingStages };
 
-export function LoadingScreen({ currentStage, brandingText = "Kilo Code", onGenerationComplete }: LoadingScreenProps) {
+export function LoadingScreen({ currentStage, brandingText = "Drew", onGenerationComplete }: LoadingScreenProps) {
   const currentProgress = currentStage.progress;
 
   React.useEffect(() => {
@@ -53,7 +53,7 @@ export function LoadingScreen({ currentStage, brandingText = "Kilo Code", onGene
         </motion.div>
 
         <div className="w-full mb-8">
-          <Progress value={currentProgress} className="w-full h-2 bg-gray-700" indicatorClassName="bg-blue-500" />
+          <Progress value={currentProgress} className="w-full h-2 bg-gray-700" />
           <p className="text-right text-sm text-gray-400 mt-2">{currentProgress}%</p>
         </div>
 

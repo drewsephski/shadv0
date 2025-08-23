@@ -123,19 +123,19 @@ export function TemplateBrowser({ onSelectTemplate }: TemplateBrowserProps) {
   };
 
   return (
-    <div className="p-4 overflow-y-auto h-full bg-gradient-to-br from-slate-50 to-white">
+    <div className="p-4 overflow-y-auto h-full bg-background text-foreground">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg">
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="p-2 bg-primary rounded-lg">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-foreground">
                 Template Gallery
               </h1>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 Beautiful, modern templates to kickstart your web projects
               </p>
             </div>
@@ -159,7 +159,7 @@ export function TemplateBrowser({ onSelectTemplate }: TemplateBrowserProps) {
               placeholder="Search templates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white border-gray-200 border-[1px] border-solid focus:border-blue-500 focus:ring-blue-500/20 h-10"
+              className="pl-10 bg-background border border-input focus:border-ring focus:ring-ring/20 h-10"
             />
           </div>
         </div>
@@ -174,8 +174,8 @@ export function TemplateBrowser({ onSelectTemplate }: TemplateBrowserProps) {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
                   selectedCategory === category.id
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-lg'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 border-solid hover:border-gray-300'
+                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    : 'bg-card text-muted-foreground hover:bg-accent border border-border hover:border-border'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -199,35 +199,35 @@ export function TemplateBrowser({ onSelectTemplate }: TemplateBrowserProps) {
             >
               <CardHeader className="p-4 pb-3">
                 <div className="flex items-start justify-between mb-2">
-                  <div className={`p-2 rounded-lg bg-gray-50 group-hover:bg-blue-50 transition-all duration-300`}>
+                  <div className={`p-2 rounded-lg bg-muted group-hover:bg-accent transition-all duration-300`}>
                     <Icon className={`size-5 ${iconColor}`} />
                   </div>
                   {template.featured && (
-                    <Badge variant="secondary" className="text-xs px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-medium shadow-sm">
-                      Featured
-                    </Badge>
-                  )}
+                   <Badge variant="secondary" className="text-xs px-2 py-1 bg-secondary text-secondary-foreground font-medium shadow-sm">
+                     Featured
+                   </Badge>
+                 )}
                 </div>
-                <CardTitle className="text-sm font-bold text-blue-400 leading-tight mb-1 line-clamp-2">
-                  {template.name}
-                </CardTitle>
+                <CardTitle className="text-sm font-bold text-foreground leading-tight mb-1 line-clamp-2">
+                   {template.name}
+               </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0 flex-1 flex flex-col">
-                <CardDescription className="text-xs text-blue-300 line-clamp-3 leading-relaxed mb-3 flex-1">
-                  {template.description}
-                </CardDescription>
+                <CardDescription className="text-xs text-muted-foreground line-clamp-3 leading-relaxed mb-3 flex-1">
+                   {template.description}
+               </CardDescription>
                 {template.tags && template.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-auto">
                     {template.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs px-2 py-0.5 text-blue-300 border-blue-200 border-[1px] border-solid bg-blue-50/20 hover:bg-blue-100/30 transition-colors">
-                        {tag}
-                      </Badge>
+                      <Badge key={tag} variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground border-border bg-background/50 hover:bg-accent transition-colors">
+                           {tag}
+                       </Badge>
                     ))}
                     {template.tags.length > 2 && (
-                      <Badge variant="outline" className="text-xs px-2 py-0.5 text-blue-200 border-blue-200/50 border-[1px] border-solid bg-blue-50/10">
-                        +{template.tags.length - 2}
-                      </Badge>
-                    )}
+                       <Badge variant="outline" className="text-xs px-2 py-0.5 text-muted-foreground border-border bg-muted">
+                         +{template.tags.length - 2}
+                       </Badge>
+                     )}
                   </div>
                 )}
               </CardContent>
@@ -240,23 +240,23 @@ export function TemplateBrowser({ onSelectTemplate }: TemplateBrowserProps) {
       {filteredTemplates.length === 0 && (
         <div className="text-center py-16">
           <div className="mb-4">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-              <Search className="h-8 w-8 text-gray-400" />
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No templates found</h3>
-          <p className="text-sm text-gray-600 mb-4 max-w-sm mx-auto">
-            Try adjusting your search terms or filter criteria to find more templates
-          </p>
+             <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+               <Search className="h-8 w-8 text-muted-foreground" />
+             </div>
+           </div>
+           <h3 className="text-lg font-semibold text-foreground mb-2">No templates found</h3>
+           <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+             Try adjusting your search terms or filter criteria to find more templates
+           </p>
           <button
-            onClick={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-            }}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Clear filters
-          </button>
+             onClick={() => {
+               setSearchQuery('');
+               setSelectedCategory('all');
+             }}
+             className="text-sm text-primary hover:text-primary/80 font-medium"
+           >
+             Clear filters
+           </button>
         </div>
       )}
 

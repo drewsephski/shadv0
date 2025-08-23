@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Share } from "lucide-react";
+import { MessageSquare, Share, Layers } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
@@ -36,6 +36,10 @@ export function Header({ onNewChat }: HeaderProps = {}) {
           <nav className="hidden md:flex items-center gap-4 ml-6">
             <Link href="/features" className="text-sm font-medium text-black hover:text-foreground transition-colors bg-blue-300 hover:bg-blue-400 px-3 py-2 rounded-sm">
               Features
+            </Link>
+            <Link href="/components" className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-2 px-3 py-2 rounded-sm hover:bg-accent">
+              <Layers className="h-4 w-4" />
+              Components
             </Link>
           </nav>
         </div>

@@ -15,7 +15,6 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from '@/components/ai-elements/conversation';
-import { Loader } from '@/components/ai-elements/loader';
 import { EmptyState } from './EmptyState';
 import { ChatMessage } from './ChatMessage';
 import { MODELS } from '@/constants/models';
