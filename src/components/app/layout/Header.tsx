@@ -5,11 +5,19 @@ import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from "@cl
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export function Header() {
+interface HeaderProps {
+  onNewChat?: () => void;
+}
+
+export function Header({ onNewChat }: HeaderProps = {}) {
   const router = useRouter();
 
   const handleNewChat = () => {
-    router.push("/");
+    if (onNewChat) {
+      onNewChat();
+    } else {
+      router.push("/");
+    }
   };
 
   return (

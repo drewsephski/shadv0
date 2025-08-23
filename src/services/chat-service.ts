@@ -5,6 +5,7 @@ import { MODELS } from '@/constants/models';
 export interface GenerateWebsiteParams {
   messages: { role: MessageRole; content: string }[];
   model: string;
+  existingHtml?: string; // Add this line for refinement
 }
 
 export class ChatService {
@@ -49,6 +50,7 @@ export class ChatService {
       const requestBody = {
         messages: apiMessages,
         model: modelKey, // The API will resolve this to the full model ID
+        ...(params.existingHtml && { existingHtml: params.existingHtml }), // Conditionally add existingHtml
       };
       
       console.log('Using model:', { modelKey, modelId: modelConfig.id });

@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import { NextResponse } from 'next/server';
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 // Initialize OpenAI client with OpenRouter's base URL
 const openaiApiKey = process.env.OPENROUTER_API_KEY;
@@ -22,17 +23,290 @@ const openai = new OpenAI({
 // Import model constants
 import { MODELS } from '@/constants/models';
 
+// Type definitions for refinement functionality
+type RefinementType = 'style' | 'functionality' | 'accessibility' | 'performance';
+
+interface RefinementRequest {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  existingHtml?: string;
+  refinementType?: RefinementType;
+  designConfig?: DesignConfig; // Design system configuration
+}
+
+// Type for design configuration
+interface DesignConfig {
+  mode?: string;
+  colors?: Record<string, string>;
+  typography?: Record<string, unknown>;
+  components?: Record<string, string>;
+  spacing?: Record<string, unknown>;
+}
+
+// Generate design system instructions from configuration
+function generateDesignSystemPrompt(designConfig: DesignConfig): string {
+  if (!designConfig) return '';
+
+  const {
+    mode = 'light',
+    colors = {},
+    typography = {},
+    components = {},
+    spacing = {}
+  } = designConfig;
+
+  const designPrompt = `
+## Design System Configuration
+Please adhere to the following design specifications:
+
+### Color Palette
+- Mode: ${mode}
+- Primary: ${colors.primary || '#3B82F6'}
+- Secondary: ${colors.secondary || '#1E40AF'}
+- Accent: ${colors.accent || '#06B6D4'}
+- Background: ${colors.background || '#FFFFFF'}
+- Surface: ${colors.surface || '#F8FAFC'}
+- Text: ${colors.text || '#1E293B'}
+- Text Secondary: ${colors.textSecondary || '#64748B'}
+- Border: ${colors.border || '#E2E8F0'}
+- Error: ${colors.error || '#EF4444'}
+- Success: ${colors.success || '#10B981'}
+- Warning: ${colors.warning || '#F59E0B'}
+
+### Typography
+- Font Family: ${typography.fontFamily || 'inter'}
+- Font Sizes: ${Object.entries(typography.fontSize || {}).map(([key, value]) => `${key}: ${value}`).join(', ')}
+- Font Weights: ${Object.entries(typography.fontWeight || {}).map(([key, value]) => `${key}: ${value}`).join(', ')}
+- Line Heights: ${Object.entries(typography.lineHeight || {}).map(([key, value]) => `${key}: ${value}`).join(', ')}
+
+### Component Styles
+- Button Style: ${components.button || 'rounded'}
+- Card Style: ${components.card || 'elevated'}
+- Input Style: ${components.input || 'default'}
+- Modal Style: ${components.modal || 'default'}
+
+### Spacing
+- Border Radius: ${Object.entries(spacing.borderRadius || {}).map(([key, value]) => `${key}: ${value}`).join(', ')}
+- Spacing Scale: ${Object.entries(spacing.spacing || {}).map(([key, value]) => `${key}: ${value}`).join(', ')}
+
+### Implementation Requirements
+1. Use the specified colors for all UI elements
+2. Apply the typography settings consistently across all text elements
+3. Implement the specified component variants and styles
+4. Follow the spacing and border radius specifications
+5. Ensure the design works in both light and dark modes if specified
+6. Use modern CSS techniques and best practices
+7. Make the design responsive and mobile-friendly
+8. Ensure proper contrast ratios for accessibility`;
+
+  return designPrompt;
+}
+
+// HTML content optimization for token limits
+function optimizeHtmlContent(htmlContent: string, maxLength: number = 8000): string {
+  if (htmlContent.length <= maxLength) {
+    return htmlContent;
+  }
+
+  // Extract essential parts: head, body structure, and scripts
+  const headMatch = htmlContent.match(/<head[\s\S]*?<\/head>/i);
+  const bodyMatch = htmlContent.match(/<body[\s\S]*?<\/body>/i);
+  const scriptsMatch = htmlContent.match(/<script[\s\S]*?<\/script>/gi);
+
+  let optimized = '';
+
+  // Always include head section
+  if (headMatch) {
+    optimized += headMatch[0] + '\n';
+  }
+
+  // Include body with smart truncation
+  if (bodyMatch) {
+    let bodyContent = bodyMatch[0];
+
+    // If body is too long, prioritize semantic structure
+    if (bodyContent.length > maxLength * 0.6) {
+      // Keep header, main content, and footer sections
+      const headerMatch = bodyContent.match(/<header[\s\S]*?<\/header>/i);
+      const mainMatch = bodyContent.match(/<main[\s\S]*?<\/main>/i);
+      const footerMatch = bodyContent.match(/<footer[\s\S]*?<\/footer>/i);
+
+      bodyContent = '<body>';
+
+      if (headerMatch) bodyContent += headerMatch[0];
+      if (mainMatch) bodyContent += mainMatch[0];
+      if (footerMatch) bodyContent += footerMatch[0];
+
+      bodyContent += '\n<!-- Content truncated for optimization -->\n</body>';
+    }
+
+    optimized += bodyContent;
+  }
+
+  // Include essential scripts
+  if (scriptsMatch) {
+    const essentialScripts = scriptsMatch.filter(script =>
+      script.includes('tailwindcss') ||
+      script.includes('interactive') ||
+      script.includes('functionality')
+    );
+    optimized += '\n' + essentialScripts.slice(0, 2).join('\n');
+  }
+
+  return optimized;
+}
+
+// Specialized refinement prompts
+function createRefinementSystemPrompt(refinementType: RefinementType, existingHtml: string): string {
+  const basePrompt = `# HTML Refinement Expert Instructions - STRICT PROTOCOL
+## Role & Mission
+You are an elite HTML refinement specialist. Your mission is to intelligently improve existing HTML code while preserving its core functionality and structure. Focus on the specific refinement type requested while maintaining backward compatibility.
+
+## Core Philosophy
+1. **Precision**: Make targeted improvements without disrupting existing functionality
+2. **Preservation**: Keep all working features, data, and user interactions intact
+3. **Enhancement**: Add value through thoughtful, focused improvements
+4. **Compatibility**: Ensure the refined HTML works across all modern browsers
+
+## Response Protocol
+**Format**: Return ONLY the complete, refined HTML code
+**Structure**: Maintain the original structure while incorporating improvements
+**Comments**: Add comments explaining significant changes made
+**Testing**: Ensure all existing functionality remains intact`;
+
+  switch (refinementType) {
+    case 'style':
+      return `${basePrompt}
+
+## Style Refinement Focus
+- **Modern Design**: Apply contemporary design principles and trends
+- **Visual Enhancement**: Improve color schemes, typography, spacing, and visual hierarchy
+- **Responsive Design**: Enhance mobile and tablet responsiveness
+- **Micro-interactions**: Add subtle animations and hover effects
+- **Brand Consistency**: Ensure visual coherence across the interface
+- **Performance**: Optimize CSS delivery and rendering
+
+## Key Style Improvements
+1. **Typography**: Implement modern font stacks and improve readability
+2. **Color Palette**: Enhance color contrast and accessibility compliance
+3. **Layout**: Optimize spacing, alignment, and visual balance
+4. **Components**: Upgrade button styles, form elements, and interactive components
+5. **Dark Mode**: Add or improve dark/light mode functionality
+6. **Visual Polish**: Add subtle shadows, borders, and modern styling techniques
+
+## Technical Excellence Standards
+- Use modern CSS features (CSS Grid, Flexbox, Custom Properties)
+- Implement mobile-first responsive design
+- Ensure WCAG 2.1 AA color contrast compliance
+- Optimize for Core Web Vitals (LCP, FID, CLS)
+- Add smooth transitions and micro-interactions`;
+
+    case 'functionality':
+      return `${basePrompt}
+
+## Functionality Refinement Focus
+- **Interactive Enhancement**: Improve user interactions and feedback
+- **JavaScript Optimization**: Enhance existing JavaScript with modern patterns
+- **User Experience**: Add intuitive features and improve usability
+- **Error Handling**: Implement robust error handling and user feedback
+- **Performance**: Optimize JavaScript execution and DOM manipulation
+- **Accessibility**: Ensure all interactive elements are accessible
+
+## Key Functionality Improvements
+1. **Form Enhancement**: Add validation, better UX, and feedback mechanisms
+2. **Navigation**: Improve menu systems and navigation patterns
+3. **Interactive Components**: Enhance tabs, accordions, modals, and carousels
+4. **Data Handling**: Improve data fetching, caching, and state management
+5. **User Feedback**: Add loading states, progress indicators, and success messages
+6. **Error Recovery**: Implement graceful error handling and recovery mechanisms
+
+## Technical Excellence Standards
+- Use modern JavaScript (ES6+, async/await, destructuring)
+- Implement proper event delegation and DOM manipulation
+- Add comprehensive form validation and user feedback
+- Optimize for performance with efficient selectors and minimal DOM queries
+- Ensure keyboard navigation and screen reader compatibility`;
+
+    case 'accessibility':
+      return `${basePrompt}
+
+## Accessibility Refinement Focus
+- **WCAG 2.1 AA Compliance**: Ensure full accessibility compliance
+- **Keyboard Navigation**: Implement complete keyboard accessibility
+- **Screen Reader Support**: Optimize for screen reader compatibility
+- **Focus Management**: Add proper focus indicators and management
+- **Semantic HTML**: Enhance semantic structure and ARIA usage
+- **Color Contrast**: Ensure proper color contrast ratios
+
+## Key Accessibility Improvements
+1. **ARIA Enhancement**: Add comprehensive ARIA labels and descriptions
+2. **Focus Management**: Implement proper focus flow and visual indicators
+3. **Semantic Structure**: Improve heading hierarchy and landmark usage
+4. **Alternative Text**: Ensure all images have descriptive alt text
+5. **Keyboard Support**: Add keyboard shortcuts and navigation
+6. **Color Blind Support**: Implement color-blind friendly design patterns
+7. **Motion Sensitivity**: Add options to reduce or eliminate animations
+
+## Technical Excellence Standards
+- Implement proper ARIA landmarks and roles
+- Ensure full keyboard navigation support
+- Add skip navigation links and proper heading hierarchy
+- Implement focus management for complex interactions
+- Test with multiple screen readers (NVDA, JAWS, VoiceOver)
+- Ensure color contrast meets WCAG 2.1 AA standards`;
+
+    case 'performance':
+      return `${basePrompt}
+
+## Performance Refinement Focus
+- **Loading Optimization**: Improve initial load times and perceived performance
+- **Runtime Efficiency**: Optimize JavaScript execution and DOM manipulation
+- **Resource Management**: Implement efficient resource loading strategies
+- **Caching Strategy**: Add proper caching headers and local storage usage
+- **Bundle Optimization**: Minimize and optimize asset delivery
+- **Core Web Vitals**: Optimize for LCP, FID, and CLS metrics
+
+## Key Performance Improvements
+1. **Critical CSS**: Inline critical CSS for above-the-fold content
+2. **Lazy Loading**: Implement lazy loading for images and non-critical resources
+3. **Code Splitting**: Optimize JavaScript bundle size and loading
+4. **Caching**: Implement proper caching strategies for static assets
+5. **DOM Optimization**: Reduce DOM queries and optimize rendering
+6. **Network Optimization**: Implement efficient API calls and data fetching
+7. **Memory Management**: Optimize memory usage and prevent leaks
+
+## Technical Excellence Standards
+- Optimize for Core Web Vitals (LCP < 2.5s, FID < 100ms, CLS < 0.1)
+- Implement efficient selectors and minimize DOM manipulation
+- Add proper loading states and skeleton screens
+- Use modern web APIs (Intersection Observer, Web Workers when beneficial)
+- Implement proper error boundaries and graceful degradation`;
+
+    default:
+      return basePrompt;
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body: RefinementRequest = await req.json();
     console.log('Received request body:', body);
 
-    // Handle both 'model' and 'messages' from the request body
-    const { model, messages: requestMessages = [] } = body;
+    // Handle both 'model' and 'messages' from the request body with refinement support
+    const {
+      model,
+      messages: requestMessages = [],
+      existingHtml,
+      refinementType,
+      designConfig
+    } = body;
 
     console.log('API Route - Request body:', body);
     console.log('API Route - Model:', model, 'Type:', typeof model);
     console.log('API Route - Messages:', requestMessages, 'Type:', typeof requestMessages);
+    console.log('API Route - Existing HTML:', existingHtml ? `${existingHtml.length} chars` : 'none');
+    console.log('API Route - Refinement Type:', refinementType);
+    console.log('API Route - Design Config:', designConfig ? 'present' : 'none');
 
     // Validate model
     if (!model || typeof model !== 'string') {
@@ -52,9 +326,26 @@ export async function POST(req: Request) {
       );
     }
 
+    // Validate refinement parameters if provided
+    if (existingHtml !== undefined) {
+      if (typeof existingHtml !== 'string') {
+        return NextResponse.json(
+          { error: 'existingHtml must be a string' },
+          { status: 400 }
+        );
+      }
+
+      if (refinementType && !['style', 'functionality', 'accessibility', 'performance'].includes(refinementType)) {
+        return NextResponse.json(
+          { error: 'refinementType must be one of: style, functionality, accessibility, performance' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Ensure messages have the correct format
     const validatedMessages = requestMessages.map((msg, index) => ({
-      role: msg.role || (index === 0 ? 'system' : 'user'),
+      role: (msg.role || (index === 0 ? 'system' : 'user')) as 'system' | 'user' | 'assistant',
       content: String(msg.content || '').trim()
     })).filter(msg => msg.content);
 
@@ -65,9 +356,49 @@ export async function POST(req: Request) {
       );
     }
 
-    const systemPrompt = `# Web Development Expert Instructions - STRICT PROTOCOL
+    // Determine if this is a refinement request or new generation
+    const isRefinement = existingHtml && refinementType;
+
+    // Create appropriate system prompt
+    let systemPrompt: string;
+
+    if (isRefinement) {
+      // Optimize HTML content for token limits
+      const optimizedHtml = optimizeHtmlContent(existingHtml);
+
+      systemPrompt = createRefinementSystemPrompt(refinementType, optimizedHtml);
+
+      // Add existing HTML context to the system prompt
+      systemPrompt += `
+
+## Existing HTML Context
+Here is the current HTML code that needs to be refined:
+
+\`\`\`html
+${optimizedHtml}
+\`\`\`
+
+## Refinement Instructions
+- Analyze the existing code structure and functionality
+- Apply improvements specific to the ${refinementType} refinement type
+- Preserve all existing working features and user interactions
+- Maintain the overall structure and purpose of the original code
+- Only modify elements that benefit from ${refinementType} improvements
+- Ensure the refined code is production-ready and follows best practices`;
+
+      console.log(`API Route - Refinement request detected: ${refinementType}`);
+      console.log(`API Route - Original HTML length: ${existingHtml.length} chars`);
+      console.log(`API Route - Optimized HTML length: ${optimizedHtml.length} chars`);
+    } else {
+      // Generate design system instructions if config is provided
+      const designSystemPrompt = designConfig ? generateDesignSystemPrompt(designConfig) : '';
+
+      // Use original generation prompt for backward compatibility with design system integration
+      systemPrompt = `# Web Development Expert Instructions - STRICT PROTOCOL
 ## Role & Mission
 You are an elite full-stack web developer specializing in creating exceptional, production-ready HTML applications. Your mission is to generate COMPLETE, SELF-CONTAINED HTML files that exceed user expectations through superior functionality, design, and user experience.
+
+${designSystemPrompt}
 
 ## Core Philosophy
 1. **Precision**: Implement exactly what's requested, then enhance with thoughtful improvements
@@ -165,18 +496,21 @@ You are an elite full-stack web developer specializing in creating exceptional, 
 <body class="bg-gray-50 text-gray-900 antialiased">
     <!-- Skip to content link for accessibility -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 rounded">Skip to content</a>
-    
+
     <!-- Your exceptional implementation here -->
-    
+
     <script>
         // Enhanced JavaScript functionality
     </script>
 </body>
 </html>`;
 
+      console.log('API Route - Standard generation request detected');
+    }
+
     // Prepare messages with system prompt and user messages
-    const messages = [
-      { role: 'system' as const, content: systemPrompt },
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
       ...validatedMessages
     ];
 
@@ -187,6 +521,21 @@ You are an elite full-stack web developer specializing in creating exceptional, 
         { error: 'No user message provided in the conversation' },
         { status: 400 }
       );
+    }
+
+    // For refinement requests, enhance the user message with context
+    if (isRefinement) {
+      const lastUserMessage = messages.filter(msg => msg.role === 'user').pop();
+      if (lastUserMessage) {
+        lastUserMessage.content += `
+
+**Refinement Context:**
+- **Type**: ${refinementType}
+- **Existing HTML**: Provided (${existingHtml.length} characters)
+- **Goal**: Improve the existing HTML code focusing on ${refinementType} aspects while preserving functionality
+
+Please refine the existing HTML code according to the ${refinementType} requirements while maintaining all existing functionality.`;
+      }
     }
 
     const modelInfo = MODELS[model as keyof typeof MODELS];
@@ -216,10 +565,27 @@ You are an elite full-stack web developer specializing in creating exceptional, 
     console.log('API Route - Final messages array:', messages);
 
     // Create a streaming response using the OpenAI client
+    // Adjust parameters based on request type
+    const requestParams = isRefinement ? {
+      temperature: 0.2,        // Lower temperature for more consistent refinements
+      max_tokens: 6144,        // Higher token limit for refinements
+      top_p: 0.8,             // More focused token selection
+      frequency_penalty: 0.3,  // Higher penalty for repetition in refinements
+      presence_penalty: 0.3,   // Higher penalty to stay on refinement topic
+    } : {
+      temperature: 0.3,        // Standard for generation
+      max_tokens: 4096,        // Standard limit for generation
+      top_p: 0.9,             // Standard token selection
+      frequency_penalty: 0.2,  // Standard repetition penalty
+      presence_penalty: 0.2,   // Standard topic staying
+    };
+
     console.log('API Route - Making OpenAI API call with:', {
       model: modelInfo.id,
       messagesCount: messages.length,
-      temperature: 0.7,
+      requestType: isRefinement ? 'refinement' : 'generation',
+      refinementType: refinementType || 'none',
+      ...requestParams,
       stream: true
     });
 
@@ -228,18 +594,15 @@ You are an elite full-stack web developer specializing in creating exceptional, 
       console.log('Sending request to OpenRouter API...', {
         model: modelInfo.id,
         messagesCount: messages.length,
-        temperature: 0.7
+        requestType: isRefinement ? 'refinement' : 'generation',
+        refinementType: refinementType || 'none'
       });
 
-      // Optimized parameters for code generation
+      // Create API request with optimized parameters
       response = await openai.chat.completions.create({
         model: modelInfo.id,
-        messages,
-        temperature: 0.3,        // Very low for maximum consistency
-        max_tokens: 4096,        // Maximum allowed by most models
-        top_p: 0.9,             // Focus on high probability tokens
-        frequency_penalty: 0.2,  // Reduce repetition
-        presence_penalty: 0.2,   // Stay on topic
+        messages: messages as ChatCompletionMessageParam[],
+        ...requestParams,
         stop: ['<|im_end|>', '```'],  // Prevent incomplete code blocks
         stream: true,
       });
@@ -289,12 +652,22 @@ You are an elite full-stack web developer specializing in creating exceptional, 
       },
     });
 
-    // Return the streaming response
+    // Return the streaming response with refinement metadata
+    const responseHeaders: Record<string, string> = {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+    };
+
+    // Add refinement metadata to headers
+    if (isRefinement) {
+      responseHeaders['X-Refinement-Type'] = refinementType;
+      responseHeaders['X-Request-Type'] = 'refinement';
+    } else {
+      responseHeaders['X-Request-Type'] = 'generation';
+    }
+
     return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-      },
+      headers: responseHeaders,
     });
     
   } catch (error) {

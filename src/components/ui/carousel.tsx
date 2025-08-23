@@ -4,7 +4,7 @@ import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, Play, Pause, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,11 @@ type CarouselProps = {
   plugins?: CarouselPlugin
   orientation?: "horizontal" | "vertical"
   setApi?: (api: CarouselApi) => void
+  autoPlay?: boolean
+  autoPlayInterval?: number
+  showDots?: boolean
+  showPlayPause?: boolean
+  pauseOnHover?: boolean
 }
 
 type CarouselContextProps = {
@@ -47,6 +52,11 @@ function Carousel({
   opts,
   setApi,
   plugins,
+  autoPlay = false,
+  autoPlayInterval = 4000,
+  showDots = false,
+  showPlayPause = false,
+  pauseOnHover = true,
   className,
   children,
   ...props
@@ -60,11 +70,17 @@ function Carousel({
   )
   const [canScrollPrev, setCanScrollPrev] = React.useState(false)
   const [canScrollNext, setCanScrollNext] = React.useState(false)
+  const [selectedIndex, setSelectedIndex] = React.useState(0)
+  const [scrollSnaps, setScrollSnaps] = React.useState<number[]>([])
+  const [isPlaying, setIsPlaying] = React.useState(autoPlay)
+  const [isHovered, setIsHovered] = React.useState(false)
+  const autoPlayRef = React.useRef<NodeJS.Timeout | null>(null)
 
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return
     setCanScrollPrev(api.canScrollPrev())
     setCanScrollNext(api.canScrollNext())
+    setSelectedIndex(api.selectedScrollSnap())
   }, [])
 
   const scrollPrev = React.useCallback(() => {
@@ -75,6 +91,14 @@ function Carousel({
     api?.scrollNext()
   }, [api])
 
+  const scrollTo = React.useCallback((index: number) => {
+    api?.scrollTo(index)
+  }, [api])
+
+  const toggleAutoPlay = React.useCallback(() => {
+    setIsPlaying(prev => !prev)
+  }, [])
+
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key === "ArrowLeft") {
@@ -83,10 +107,40 @@ function Carousel({
       } else if (event.key === "ArrowRight") {
         event.preventDefault()
         scrollNext()
+      } else if (event.key === "Home") {
+        event.preventDefault()
+        scrollTo(0)
+      } else if (event.key === "End") {
+        event.preventDefault()
+        scrollTo(scrollSnaps.length - 1)
       }
     },
-    [scrollPrev, scrollNext]
+    [scrollPrev, scrollNext, scrollTo, scrollSnaps.length]
   )
+
+  // Auto-play functionality
+  React.useEffect(() => {
+    if (!api || !autoPlay) return
+
+    const startAutoPlay = () => {
+      autoPlayRef.current = setInterval(() => {
+        if (isPlaying && !isHovered && api.canScrollNext()) {
+          api.scrollNext()
+        } else if (isPlaying && !isHovered && !api.canScrollNext()) {
+          api.scrollTo(0) // Loop back to start
+        }
+      }, autoPlayInterval)
+    }
+
+    const stopAutoPlay = () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current)
+      }
+    }
+
+    startAutoPlay()
+    return stopAutoPlay
+  }, [api, autoPlay, autoPlayInterval, isPlaying, isHovered])
 
   React.useEffect(() => {
     if (!api || !setApi) return
@@ -95,6 +149,7 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
+    setScrollSnaps(api.scrollSnapList())
     onSelect(api)
     api.on("reInit", onSelect)
     api.on("select", onSelect)
@@ -103,6 +158,14 @@ function Carousel({
       api?.off("select", onSelect)
     }
   }, [api, onSelect])
+
+  const handleMouseEnter = React.useCallback(() => {
+    setIsHovered(true)
+  }, [])
+
+  const handleMouseLeave = React.useCallback(() => {
+    setIsHovered(false)
+  }, [])
 
   return (
     <CarouselContext.Provider
@@ -120,13 +183,31 @@ function Carousel({
     >
       <div
         onKeyDownCapture={handleKeyDown}
-        className={cn("relative", className)}
+        onMouseEnter={pauseOnHover ? handleMouseEnter : undefined}
+        onMouseLeave={pauseOnHover ? handleMouseLeave : undefined}
+        className={cn("relative group", className)}
         role="region"
         aria-roledescription="carousel"
+        aria-label="Image carousel"
         data-slot="carousel"
         {...props}
       >
         {children}
+        {showDots && scrollSnaps.length > 1 && (
+          <CarouselDots
+            scrollSnaps={scrollSnaps}
+            selectedIndex={selectedIndex}
+            onDotClick={scrollTo}
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2"
+          />
+        )}
+        {showPlayPause && autoPlay && (
+          <CarouselPlayPause
+            isPlaying={isPlaying}
+            onToggle={toggleAutoPlay}
+            className="absolute top-4 right-4"
+          />
+        )}
       </div>
     </CarouselContext.Provider>
   )
@@ -144,7 +225,7 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
       <div
         className={cn(
           "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
+          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex flex-col",
           className
         )}
         {...props}
@@ -231,6 +312,70 @@ function CarouselNext({
   )
 }
 
+function CarouselDots({
+  scrollSnaps,
+  selectedIndex,
+  onDotClick,
+  className,
+  ...props
+}: {
+  scrollSnaps: number[]
+  selectedIndex: number
+  onDotClick: (index: number) => void
+} & React.ComponentProps<"div">) {
+  return (
+    <div
+      className={cn("flex space-x-2", className)}
+      role="tablist"
+      aria-label="Carousel navigation"
+      {...props}
+    >
+      {scrollSnaps.map((_, index) => (
+        <button
+          key={index}
+          type="button"
+          role="tab"
+          aria-selected={selectedIndex === index}
+          aria-label={`Go to slide ${index + 1}`}
+          className={cn(
+            "w-2 h-2 rounded-full transition-all duration-200",
+            selectedIndex === index
+              ? "bg-white shadow-lg scale-125"
+              : "bg-white/50 hover:bg-white/75"
+          )}
+          onClick={() => onDotClick(index)}
+        />
+      ))}
+    </div>
+  )
+}
+
+function CarouselPlayPause({
+  isPlaying,
+  onToggle,
+  className,
+  ...props
+}: {
+  isPlaying: boolean
+  onToggle: () => void
+} & React.ComponentProps<"button">) {
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      className={cn(
+        "bg-black/20 hover:bg-black/30 text-white border-white/20 border-[1px] border-solid backdrop-blur-sm",
+        className
+      )}
+      onClick={onToggle}
+      aria-label={isPlaying ? "Pause carousel" : "Play carousel"}
+      {...props}
+    >
+      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+    </Button>
+  )
+}
+
 export {
   type CarouselApi,
   Carousel,
@@ -238,4 +383,6 @@ export {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  CarouselDots,
+  CarouselPlayPause,
 }
